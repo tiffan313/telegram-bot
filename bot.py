@@ -1,52 +1,61 @@
+import asyncio
 import os
-from telegram import Update, ReplyKeyboardMarkup
-from telegram.ext import Application, CommandHandler, MessageHandler, ContextTypes, filters
+from aiogram import Bot, Dispatcher, types
+from aiogram.filters import CommandStart
 
 TOKEN = os.getenv("BOT_TOKEN")
 
-# کیبورد اصلی
-keyboard = ReplyKeyboardMarkup(
-    [
-        ["📖 قرآن", "📜 احادیث"],
-        ["🔍 جستجو"]
-    ],
-    resize_keyboard=True
-)
+bot = Bot(token=TOKEN)
+dp = Dispatcher()
 
-# /start
-async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await update.message.reply_text(
-        "سلام 👋\nیکی از بخش‌ها رو انتخاب کن:",
-        reply_markup=keyboard
+# کیبورد اصلی
+def main_keyboard():
+    return types.ReplyKeyboardMarkup(
+        keyboard=[
+            [types.KeyboardButton(text="📖 قرآن")],
+            [types.KeyboardButton(text="📜 احادیث")],
+            [types.KeyboardButton(text="🔎 جستجو")]
+        ],
+        resize_keyboard=True
     )
 
-# هندل پیام‌ها
-async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    text = update.message.text
+@dp.message(CommandStart())
+async def start(message: types.Message):
+    await message.answer(
+        "سلام 👋\nبه ربات *لایقه* خوش اومدی.\nیکی از بخش‌ها رو انتخاب کن:",
+        reply_markup=main_keyboard(),
+        parse_mode="Markdown"
+    )
 
+@dp.message()
+async def handler(message: types.Message):
+    text = message.text
+
+    # قرآن
     if text == "📖 قرآن":
-        await update.message.reply_text(
-            "📖 بخش قرآن\n\nفعلاً در نسخه اولیه هستیم.\nبه زودی امکان انتخاب سوره و آیه اضافه میشه."
+        await message.answer(
+            "📖 بخش قرآن\n\nفعلاً در حال توسعه هست...\nبه زودی می‌تونی:\n- انتخاب سوره\n- انتخاب آیه\n- ترجمه و تفسیر"
         )
 
+    # احادیث
     elif text == "📜 احادیث":
-        await update.message.reply_text(
-            "📜 بخش احادیث\n\nفعلاً در نسخه اولیه هستیم.\nبه زودی احادیث موضوعی + عربی + ترجمه + شرح اضافه میشه."
+        await message.answer(
+            "📜 بخش احادیث\n\nفعلاً در حال توسعه هست...\nبه زودی:\n- احادیث موضوعی\n- سرچ حدیث\n- متن عربی + ترجمه + شرح"
         )
 
-    elif text == "🔍 جستجو":
-        await update.message.reply_text(
-            "🔍 بخش جستجو\n\nبه زودی قابلیت سرچ آیه یا حدیث فعال میشه."
+    # جستجو
+    elif text == "🔎 جستجو":
+        await message.answer(
+            "🔎 جستجو\n\nفعلاً آماده نیست...\nبه زودی می‌تونی هر آیه یا حدیثی رو سرچ کنی"
         )
 
     else:
-        await update.message.reply_text("یکی از دکمه‌ها رو انتخاب کن 👇")
+        await message.answer("از دکمه‌ها استفاده کن 👇", reply_markup=main_keyboard())
 
-# ساخت اپ
-app = Application.builder().token(TOKEN).build()
 
-app.add_handler(CommandHandler("start", start))
-app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
+async def main():
+    print("Lahegh bot is running...")
+    await dp.start_polling(bot)
 
-print("Lahegh bot is running...")
-app.run_polling()
+if __name__ == "__main__":
+    asyncio.run(main())
