@@ -1,31 +1,52 @@
+import os
 from telegram import Update, ReplyKeyboardMarkup
 from telegram.ext import Application, CommandHandler, MessageHandler, ContextTypes, filters
-import os
 
 TOKEN = os.getenv("BOT_TOKEN")
 
+# کیبورد اصلی
 keyboard = ReplyKeyboardMarkup(
     [
-        ["قرآن 📖", "حدیث 📚"],
-        ["جستجو 🔍"]
+        ["📖 قرآن", "📜 احادیث"],
+        ["🔍 جستجو"]
     ],
     resize_keyboard=True
 )
 
+# /start
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text(
-        "سلام 👋 یکی از گزینه‌ها رو انتخاب کن:",
+        "سلام 👋\nیکی از بخش‌ها رو انتخاب کن:",
         reply_markup=keyboard
     )
 
-async def reply(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await update.message.reply_text("در حال توسعه 👷‍♂️")
+# هندل پیام‌ها
+async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    text = update.message.text
 
-if __name__ == "__main__":
-    app = Application.builder().token(TOKEN).build()
+    if text == "📖 قرآن":
+        await update.message.reply_text(
+            "📖 بخش قرآن\n\nفعلاً در نسخه اولیه هستیم.\nبه زودی امکان انتخاب سوره و آیه اضافه میشه."
+        )
 
-    app.add_handler(CommandHandler("start", start))
-    app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, reply))
+    elif text == "📜 احادیث":
+        await update.message.reply_text(
+            "📜 بخش احادیث\n\nفعلاً در نسخه اولیه هستیم.\nبه زودی احادیث موضوعی + عربی + ترجمه + شرح اضافه میشه."
+        )
 
-    print("Bot is running...")
-    app.run_polling()
+    elif text == "🔍 جستجو":
+        await update.message.reply_text(
+            "🔍 بخش جستجو\n\nبه زودی قابلیت سرچ آیه یا حدیث فعال میشه."
+        )
+
+    else:
+        await update.message.reply_text("یکی از دکمه‌ها رو انتخاب کن 👇")
+
+# ساخت اپ
+app = Application.builder().token(TOKEN).build()
+
+app.add_handler(CommandHandler("start", start))
+app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
+
+print("Lahegh bot is running...")
+app.run_polling()
